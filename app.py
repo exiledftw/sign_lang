@@ -57,7 +57,13 @@ model = load_model()
 
 # --- 3. PREPROCESSING PIPELINE ---
 preprocess = transforms.Compose([
-    transforms.Resize((64, 64)),
+    # 1. Take the widescreen webcam photo and crop a perfect square out of the center
+    transforms.CenterCrop(min(image.size)), 
+    
+    # 2. Resize that clean, un-squished square down to the model's size
+    transforms.Resize((64, 64)),   
+    
+    # 3. Convert and normalize
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
