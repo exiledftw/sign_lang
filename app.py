@@ -43,8 +43,8 @@ class HandSignCNN(nn.Module):
 @st.cache_resource
 def load_model():
     model = HandSignCNN()
-    # Updated: Points directly to the file sitting right next to this script
-    weights_path = 'hand_sign_cnn_weights.pth'
+    # Reverted back to your preferred subdirectory path
+    weights_path = 'saved_models/hand_sign_cnn_weights.pth'
     
     try:
         # Load to CPU to ensure compatibility across web hosting platforms
@@ -52,11 +52,10 @@ def load_model():
         model.eval()
         return model
     except FileNotFoundError:
-        st.error(f"Could not find model weights at `{weights_path}`. Make sure the file is in the same folder as this script!")
+        st.error(f"Could not find model weights at `{weights_path}`. Make sure the file is inside the 'saved_models' folder!")
         return None
 
 model = load_model()
-
 # --- 3. GLOBAL PREPROCESSING (STATIC) ---
 # Removed CenterCrop from here so it doesn't crash on startup
 preprocess = transforms.Compose([
