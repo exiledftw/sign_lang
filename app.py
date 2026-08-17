@@ -2,6 +2,7 @@ import streamlit as st
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
+import torchvision.transforms.functional as F
 from PIL import Image
 
 # --- 1. REDEFINE THE ARCHITECTURE ---
@@ -42,7 +43,8 @@ class HandSignCNN(nn.Module):
 @st.cache_resource
 def load_model():
     model = HandSignCNN()
-    weights_path = 'saved_models/hand_sign_cnn_weights.pth'
+    # Updated: Points directly to the file sitting right next to this script
+    weights_path = 'hand_sign_cnn_weights.pth'
     
     try:
         # Load to CPU to ensure compatibility across web hosting platforms
@@ -50,20 +52,15 @@ def load_model():
         model.eval()
         return model
     except FileNotFoundError:
-        st.error(f"Could not find model weights at `{weights_path}`. Make sure you exported the .pth file!")
+        st.error(f"Could not find model weights at `{weights_path}`. Make sure the file is in the same folder as this script!")
         return None
 
 model = load_model()
 
-# --- 3. PREPROCESSING PIPELINE ---
+# --- 3. GLOBAL PREPROCESSING (STATIC) ---
+# Removed CenterCrop from here so it doesn't crash on startup
 preprocess = transforms.Compose([
-    # 1. Take the widescreen webcam photo and crop a perfect square out of the center
-    transforms.CenterCrop(min(image.size)), 
-    
-    # 2. Resize that clean, un-squished square down to the model's size
     transforms.Resize((64, 64)),   
-    
-    # 3. Convert and normalize
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
@@ -73,8 +70,12 @@ def predict_and_display(image):
     st.image(image, caption='Image for Prediction', width=300)
     st.write("🔄 Running inference...")
     
-    input_tensor = preprocess(image)       
-    input_batch = input_tensor.unsqueeze(0) 
+    # 1. Dynamically crop a perfect square from the center of the image to fix distortion
+    cropped_image = F.center_crop(image, min(image.size))
+    
+    # 2. Resize and normalize the square matrix
+    input_tensor = preprocess(cropped_image)       
+    input_batch = input_tensor.unsqueeze(0) # Add batch dimension -> [1, 3, 64, 64]
 
     if model is not None:
         with torch.no_grad():
