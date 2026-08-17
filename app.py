@@ -7,6 +7,7 @@ from PIL import Image
 import numpy as np
 import cv2
 import mediapipe as mp
+from mediapipe.python.solutions import hands as mp_hands
 
 # --- 1. REDEFINE THE ARCHITECTURE ---
 class HandSignCNN(nn.Module):
@@ -58,13 +59,14 @@ def load_model():
 model = load_model()
 
 # --- 3. MEDIAPIPE INITIALIZATION ---
-mp_hands = mp.solutions.hands
+# Using the explicit framework module pathway to bypass the solutions shortcut corruption
+
+
 hands_processor = mp_hands.Hands(
     static_image_mode=True, 
     max_num_hands=1, 
     min_detection_confidence=0.5
 )
-
 # --- 4. PREPROCESSING PIPELINE (STATIC) ---
 preprocess = transforms.Compose([
     transforms.Resize((64, 64)),   
