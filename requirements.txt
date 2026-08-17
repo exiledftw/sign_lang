@@ -4,4 +4,3 @@ torchvision
 Pillow
 mediapipe
 numpy
-opencv-python-headless
